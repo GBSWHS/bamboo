@@ -1,6 +1,9 @@
 import { Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Namespace, Server, Socket } from 'socket.io'
+import PostsEntity from 'src/entity/posts.entity';
+import { Repository } from 'typeorm';
 @WebSocketGateway(3002, {
   namespace: "socket",
   cors: true,
@@ -10,7 +13,11 @@ import { Namespace, Server, Socket } from 'socket.io'
 })
 export class SocketGateway 
   implements OnGatewayConnection, OnGatewayDisconnect {
-  
+  constructor(
+    @InjectRepository(PostsEntity)
+    private postsRepository: Repository<PostsEntity>
+  ) {};
+    
   @WebSocketServer() nsp: Namespace;
   server: Server;
   logger = new Logger();
@@ -24,7 +31,7 @@ export class SocketGateway
   }
   
   @SubscribeMessage('getPosts')
-  handleMessage(client: Socket, payload: any): string {
+  getPosts(@ConnectedSocket() socket: Socket, payload: any) {
     return 'Hello world!';
   }
 }
