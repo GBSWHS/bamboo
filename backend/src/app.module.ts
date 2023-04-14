@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { SocketGateway } from './socket/socket.gateway';
 import { SocketModule } from './socket/socket.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import PostsEntity from './entity/posts.entity';
 
 @Module({
   imports: [TypeOrmModule.forRoot({
@@ -13,7 +14,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       username: "username",
       password: "password",
       database: "gbsw-bamboo",
-      entities: [],
+      entities: [PostsEntity],
       synchronize: true
     }),
     SocketModule
