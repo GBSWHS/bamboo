@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity({ name: "postsEntity" })
 export default class PostsEntity {
@@ -22,4 +22,7 @@ export default class PostsEntity {
 
   @Column({ name: "remoteAddress", type: "text" })
   remoteAddress: string;
+
+  @CreateDateColumn({ name: "createdAt" })
+  createdAt: Date;
 }
