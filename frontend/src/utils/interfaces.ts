@@ -28,8 +28,10 @@ export type ModalAction =
   }
 
 export interface GlobalProps {
-  isLoading: boolean,
-  setLoading: Dispatch<SetStateAction<boolean>>
+  loading: {
+    event: boolean,
+    update: Dispatch<SetStateAction<boolean>>
+  }
   modal: {
     event: ModalState,
     update: Dispatch<ModalAction>
