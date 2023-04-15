@@ -18,6 +18,14 @@ const GlobalStyle = createGlobalStyle`
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: rgb(217, 237, 255);
+    max-width: 800px;
+    margin: 0 auto 20px auto;
+    text-rendering: optimizeLegibility;
+    padding: 0 10px;
+
+    line-height: 1.4;
+    color: #363636;
+    text-rendering: optimizeLegibility;
   }
   
   code {
