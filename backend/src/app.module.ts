@@ -7,9 +7,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigurationModule } from './config/config.module';
 import PostsEntity from './entity/posts.entity';
 import CategoryEntity from './entity/category.entity';
-import AdminsEntity from './entity/admins.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { redisModule } from './utils/redis';
+import QuestEntity from './entity/quest.entity';
 
 @Module({
   imports: [TypeOrmModule.forRootAsync({
@@ -22,7 +22,7 @@ import { redisModule } from './utils/redis';
         username: configService.get('DATABASE_USERNAME'),
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_SCHEMA'),
-        entities: [PostsEntity, CategoryEntity, AdminsEntity],
+        entities: [PostsEntity, CategoryEntity, QuestEntity],
         synchronize: configService.get<boolean>('TYPEORM_SYBCHRONIZE')
       }),
     }),
