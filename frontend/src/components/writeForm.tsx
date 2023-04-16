@@ -1,6 +1,6 @@
 import React, { useEffect, useReducer, useState } from "react";
 import io from 'socket.io-client'
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { GlobalProps } from "../utils/interfaces";
 
 export default function WriteForm(props: GlobalProps) {
@@ -25,6 +25,7 @@ export default function WriteForm(props: GlobalProps) {
       createdAt: new Date()
     }]
   })
+  const [mouseOver, setMouseOver] = useState("normal");
   
   useEffect(() => {
     const Socket = io("http://localhost:3002/socket")
@@ -55,7 +56,6 @@ export default function WriteForm(props: GlobalProps) {
         }
       }));
     });
-     
 
     return () => {
       clearInterval(getCategory);
@@ -82,6 +82,11 @@ export default function WriteForm(props: GlobalProps) {
         </SelectUl>
       </SelectBody>
       <TextArea placeholder="타인을 향한 욕설 및 비방, 저격은 징계 대상 입니다." />
+      <Button type="submit" value={"등록하기"} />
+      <Policy onMouseOver={() => setMouseOver("on")} onMouseOut={() => setMouseOver("off")} href={"/policy"}>
+        게시규정&nbsp;
+        <div className={mouseOver}>&#62;</div>
+      </Policy>
     </Body>
   )
 }
@@ -89,6 +94,7 @@ export default function WriteForm(props: GlobalProps) {
 const Body = styled.form`
   background-color: white;
   margin-bottom: 1rem;
+  color: rgb(0, 78, 130);
   padding: 2rem;
 
   width: 100%;
@@ -100,8 +106,9 @@ const Body = styled.form`
 const TitleAndQ = styled.div`
   display: flex;
   width: 100%;
-
+  
   > input {
+    color: rgb(0, 78, 130);
     transition: all .1s;
 
     display: inline-block;
@@ -183,6 +190,8 @@ const SelectUl = styled.ul`
 
 const TextArea = styled.textarea`
   transition: all .1s;
+  color: rgb(0, 78, 130);
+  font-weight: 600;
   
   padding: 10px;
   margin-bottom: 6px;
@@ -204,5 +213,64 @@ const TextArea = styled.textarea`
   &:focus {
     box-shadow: 0 0 0 2px black;
     height: 15rem;
+  }
+`
+
+const Button = styled.input`
+  padding: 10px 30px;
+  margin-right: 6px;
+  margin-bottom: 6px;
+  border: none;
+  border-radius: 7px;
+  outline: none;
+  background-color:rgb(217,237,255);
+  font-weight: 700;
+  color: rgb(0, 78, 130);
+  cursor: pointer;
+`
+
+const mouseOn = keyframes`
+  0% {
+    opacity: 0;
+    left: -10px;
+  }
+
+  100% {
+    opacity: 1;
+    left: 0px;
+  }
+`
+
+const mouseOut = keyframes`
+  0% {
+    opacity: 1;
+    left: 0px;
+  }
+
+  100% {
+    opacity: 0;
+    left: -10px;
+  }
+`
+
+const Policy = styled.a`
+  font-weight: 600;
+  margin-left: 1rem;
+  display: inline-flex;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+  > div {
+    position: relative;
+    opacity: 0;
+  }
+
+  > div.on {
+    animation: ${mouseOn} .1s forwards;
+  }
+
+  > div.off {
+    animation: ${mouseOut} .1s forwards;
   }
 `
