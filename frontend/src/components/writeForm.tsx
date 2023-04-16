@@ -2,12 +2,14 @@ import React, { useEffect, useReducer, useState } from "react";
 import io from 'socket.io-client'
 import styled, { keyframes } from "styled-components";
 import { GlobalProps } from "../utils/interfaces";
+import { getCookie } from "@/utils/cookies";
 
 export default function WriteForm(props: GlobalProps) {
   const [state, setState] = useState({
     client: {
       title: "",
       desc: "",
+      password: "",
       category: "태그 선택",
       answer: "",
       isOpen: false
@@ -25,6 +27,7 @@ export default function WriteForm(props: GlobalProps) {
       createdAt: new Date()
     }]
   })
+
   const [mouseOver, setMouseOver] = useState("normal");
   
   useEffect(() => {
@@ -63,12 +66,29 @@ export default function WriteForm(props: GlobalProps) {
     };
   }, [])
 
+  function submit(e: any) {
+    e.preventDefault();
+    const Socket = io("http://localhost:3002/socket")
+    
+    Socket.emit('addPosts', { 
+      title: state.client.title, 
+      desc: state.client.desc, 
+      password: state.client.password,
+      category: state.client.category,
+      quest: state.Quest.increment,
+      answer: state.client.answer,
+      session: getCookie('session-id')
+    })
+
+  }
+
   return (
     <Body>
       <TitleAndQ>
-        <input maxLength={24} minLength={1} placeholder="제목 (최대 24자)" onChange={(e) => setState(prevState => ({ ...prevState, client: { ...prevState.client, title: e.target.value} }))}/>
-        <input placeholder={state.Quest.quest} onChange={(e) => setState(prevState => ({ ...prevState, client: { ...prevState.client, answer: e.target.value }})) } />
+        <Input value={state.client.title} maxLength={24} minLength={1} placeholder="제목 (최대 24자)" onChange={(e) => setState(prevState => ({ ...prevState, client: { ...prevState.client, title: e.target.value} }))}/>
+        <Input value={state.client.answer} placeholder={state.Quest.quest} onChange={(e) => setState(prevState => ({ ...prevState, client: { ...prevState.client, answer: e.target.value }})) } />
       </TitleAndQ>
+      <Input value={state.client.password} placeholder={"게시물에 등록할 비밀번호를 적어주세요."} style={{ width: "100%" }} onChange={(e) => setState(prevState => ({ ...prevState, client: { ...prevState.client, password: e.target.value }})) } />
       <SelectBody>
         <SelectData onClick={() => setState(prevState => ({ ...prevState, client: { ...prevState.client, isOpen: !prevState.client.isOpen } }))}>
           <h1>{state.client.category}</h1>
@@ -81,7 +101,7 @@ export default function WriteForm(props: GlobalProps) {
           ))}
         </SelectUl>
       </SelectBody>
-      <TextArea placeholder="타인을 향한 욕설 및 비방, 저격은 징계 대상 입니다." />
+      <TextArea value={state.client.desc} placeholder="타인을 향한 욕설 및 비방, 저격은 징계 대상 입니다." onChange={(e) => setState(prevState => ({ ...prevState, client: { ...prevState.client, desc: e.target.value } }))} />
       <Button type="submit" value={"등록하기"} />
       <Policy onMouseOver={() => setMouseOver("on")} onMouseOut={() => setMouseOver("off")} href={"/policy"}>
         게시규정&nbsp;
@@ -103,41 +123,41 @@ const Body = styled.form`
   border-radius: 8px;
 `
 
-const TitleAndQ = styled.div`
-  display: flex;
-  width: 100%;
+const Input = styled.input`
+  color: rgb(0, 78, 130);
+  transition: all .1s;
+
+  display: inline-block;
+  width: 50%;
   
-  > input {
-    color: rgb(0, 78, 130);
-    transition: all .1s;
+  flex: 3;
+  font-size: 1rem;
+  font-weight: 600;
+  -webkit-appearance: none;
+  background-color: rgb(217, 237, 255);
 
-    display: inline-block;
-    width: 50%;
-    
-    flex: 3;
-    font-size: 1rem;
-    font-weight: 600;
-    -webkit-appearance: none;
-    background-color: rgb(217, 237, 255);
+  margin-right: 6px;
+  margin-bottom: 6px;
+  padding: 10px;
+  
+  border: none;
+  border-radius: 6px;
+  
+  outline: none;
 
-    margin-right: 6px;
-    margin-bottom: 6px;
-    padding: 10px;
-    
-    border: none;
-    border-radius: 6px;
-    
-    outline: none;
-  }
-
-  > input:last-child {
+  &:last-child {
     margin: 0;
     margin-bottom: 6px;
   }
 
-  > input:focus {
+  &:focus {
     box-shadow: 0 0 0 2px black;
   }
+`
+
+const TitleAndQ = styled.div`
+  display: flex;
+  width: 100%;
 `
 
 const SelectBody = styled.div`
