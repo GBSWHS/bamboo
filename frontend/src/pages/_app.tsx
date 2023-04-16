@@ -6,6 +6,8 @@ import GlobalStyle from '@/styles/globals'
 import Modal from '@/components/Modal'
 import Loading from '@/components/Loading'
 import Head from '@/components/Head'
+import { getCookie, setCookie } from '@/utils/cookies'
+import getRandom from '@/utils/getRandom'
 
 export default function App({ Component, pageProps }: AppProps) {
   const [isLoading, setLoading] = useState<boolean>(false)
@@ -34,7 +36,10 @@ export default function App({ Component, pageProps }: AppProps) {
         })
         return <></>
       } else {
-        
+        const session = getCookie('session-id')
+        if (!session) {
+          setCookie('session-id', getRandom('all', 32), { path: '/' })
+        }
       }
     }, 350);
     
