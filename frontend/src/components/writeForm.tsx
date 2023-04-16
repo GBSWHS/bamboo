@@ -1,40 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import io from 'socket.io-client'
 import styled from "styled-components";
-import { GlobalProps } from "../utils/interfaces";
-
-interface Category {
-  uuid: string,
-  name: string,
-  desc?: string | undefined,
-  status: boolean,
-  post_count: number,
-  createdAt: Date
-}
-
-interface Quest {
-  increment: string,
-  quest: string,
-}
-
-interface WriteFormState {
-  client: {
-    title: string,
-    desc: string,
-    category: string,
-    quest: string
-  },
-  Quest: Quest,
-  Category: Category[]
-}
+import { Category, GlobalProps } from "../utils/interfaces";
+import WriteFormReducer from "@/modules/writeFormReducer";
 
 export default function WriteForm(props: GlobalProps) {
-  const [state, setState] = useState<WriteFormState>({
+  const [state, setState] = useState({
     client: {
       title: "",
       desc: "",
-      category: "",
-      quest: ""
+      category: "태그 선택",
+      answer: "",
+      isOpen: false
     },
     Quest: {
       increment: "",
@@ -44,7 +21,7 @@ export default function WriteForm(props: GlobalProps) {
       uuid: "",
       name: "",
       desc: "",
-      status: false,
+      visible: false,
       post_count: 0,
       createdAt: new Date()
     }]
@@ -63,22 +40,21 @@ export default function WriteForm(props: GlobalProps) {
       Socket.emit('getQuest')
     }, 60000);
 
-    Socket.on('getCategory', (res) => {
-      setState({
-        ...state,
-        Category: res.Category
-      });
+    Socket.on('getCategory', async (res) => {
+      setState(prevState => ({
+        ...prevState,
+        Category: res.category
+      }));
     })
 
     Socket.on('getQuest', (res) => {
-      console.log(res);
-      setState({
-        ...state,
+      setState(prevState => ({
+        ...prevState,
         Quest: {
-          increment: res.increment,
-          quest: res.quest,
+          increment: res.Quest.increment,
+          quest: res.Quest.quest,
         }
-      });
+      }));
     });
      
 
@@ -86,17 +62,27 @@ export default function WriteForm(props: GlobalProps) {
       clearInterval(getCategory);
       clearInterval(getQuest)
     };
-    
   }, [])
+
   return (
     <Body>
       <TitleAndQ>
-        <input style={{ width: "25%" }} maxLength={24} minLength={1} placeholder="제목 (최대 24자)" onChange={(e) => setState({...state, client: { ...state.client, title: e.target.value }})}/>
-        <input style={{ width: "40%" }} placeholder={state.Quest.quest} onChange={(e) => setState({...state, client: { ...state.client, quest: e.target.value }})} />
-        <SelectBody>
-          <span></span>
-        </SelectBody>
+        <input maxLength={24} minLength={1} placeholder="제목 (최대 24자)" onChange={(e) => setState(prevState => ({ ...prevState, client: { ...prevState.client, title: e.target.value} }))}/>
+        <input placeholder={state.Quest.quest} onChange={(e) => setState(prevState => ({ ...prevState, client: { ...prevState.client, answer: e.target.value }})) } />
       </TitleAndQ>
+      <SelectBody>
+        <SelectData onClick={() => setState(prevState => ({ ...prevState, client: { ...prevState.client, isOpen: !prevState.client.isOpen } }))}>
+          <h1>{state.client.category}</h1>
+        </SelectData>
+        <SelectUl className={state.client.isOpen ? "on" : "off"}>
+          {Object.values(state.Category).map((data, index) => (
+            <>
+              <li key={index} onClick={() => setState(prevState => ({ ...prevState, client: { ...prevState.client, category: data.name, isOpen: false} }))}>{data.name}</li>
+            </>
+          ))}
+        </SelectUl>
+      </SelectBody>
+      <TextArea placeholder="타인을 향한 욕설 및 비방, 저격은 징계 대상 입니다." />
     </Body>
   )
 }
@@ -117,14 +103,14 @@ const TitleAndQ = styled.div`
   width: 100%;
 
   > input {
-    transition: all .2s;
+    transition: all .1s;
 
     display: inline-block;
+    width: 50%;
     
     flex: 3;
     font-size: 1rem;
     font-weight: 600;
-    min-width: 250px;
     -webkit-appearance: none;
     background-color: rgb(217, 237, 255);
 
@@ -138,6 +124,11 @@ const TitleAndQ = styled.div`
     outline: none;
   }
 
+  > input:last-child {
+    margin: 0;
+    margin-bottom: 6px;
+  }
+
   > input:focus {
     box-shadow: 0 0 0 2px black;
   }
@@ -145,5 +136,74 @@ const TitleAndQ = styled.div`
 
 const SelectBody = styled.div`
   position: relative;
-  width: 
+  width: 100%;
+  height: 40px;
+  padding: 10px;
+  background-color: rgb(217, 237, 255); 
+  margin-bottom: 6px;
+  border-radius: 6px;
+  transition: all .1s;
+
+  > div {
+    font-weight: 600;
+  }
+`
+
+const SelectData = styled.div`
+  cursor: pointer;
+`
+
+const SelectUl = styled.ul`
+  position: absolute;
+  left: 0;
+  overflow: scroll;
+  background-color: rgb(217, 237, 255);
+
+  &.on {
+    width: 100%;
+    height: auto;
+  }
+
+  &.off {
+    display: none;
+  }
+
+  > li {
+    transition: all .1s;
+    width: 100%;
+    height: 40px;
+    cursor: pointer;
+    padding: 10px;
+    border-bottom: 1px solid rgb(197, 217, 235);
+  }
+
+  > li:hover {
+    background-color: rgb(197, 217, 235);
+  }
+`
+
+const TextArea = styled.textarea`
+  transition: all .1s;
+  
+  padding: 10px;
+  margin-bottom: 6px;
+  
+  width: 100%;
+  height: 5rem;
+
+  font-size: 14px;
+  transition: 0.25s ease-out;
+  
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+  
+  background-color: rgb(217,237,255);
+  border: none;
+  border-radius: 8px;
+
+  &:focus {
+    box-shadow: 0 0 0 2px black;
+    height: 15rem;
+  }
 `
