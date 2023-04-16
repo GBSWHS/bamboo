@@ -95,9 +95,7 @@ export default function WriteForm(props: GlobalProps) {
         </SelectData>
         <SelectUl className={state.client.isOpen ? "on" : "off"}>
           {Object.values(state.Category).map((data, index) => (
-            <>
-              <li key={index} onClick={() => setState(prevState => ({ ...prevState, client: { ...prevState.client, category: data.name, isOpen: false} }))}>{data.name}</li>
-            </>
+            <li key={index} onClick={() => setState(prevState => ({ ...prevState, client: { ...prevState.client, category: data.name, isOpen: false} }))}>{data.name}</li>
           ))}
         </SelectUl>
       </SelectBody>
