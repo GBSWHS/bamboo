@@ -1,8 +1,7 @@
 import React, { useEffect, useReducer, useState } from "react";
 import io from 'socket.io-client'
 import styled from "styled-components";
-import { Category, GlobalProps } from "../utils/interfaces";
-import WriteFormReducer from "@/modules/writeFormReducer";
+import { GlobalProps } from "../utils/interfaces";
 
 export default function WriteForm(props: GlobalProps) {
   const [state, setState] = useState({
