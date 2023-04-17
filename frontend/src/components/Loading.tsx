@@ -24,12 +24,12 @@ const rotate = keyframes`
 
 const open = keyframes`
   0% { opacity: 0; }
-  100% { opacity: 1; }
+  100% { opacity: 1; z-index: 99999 }
 `
 
 const close = keyframes`
-  0% { opacity: 1; }
-  100% { opacity: 0; z-index: -999; }
+  0% { opacity: 1; z-index: 99999 }
+  100% { opacity: 0; z-index: -99999; }
 `
 
 const Body = styled.div`
@@ -40,7 +40,7 @@ const Body = styled.div`
   height: 100vh;
 
   background-color: rgb(217, 237, 255);
-  z-index: 1;
+  z-index: 99999;
 
   &.true {
     animation: ${open} .25s forwards;
