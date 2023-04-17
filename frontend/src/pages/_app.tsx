@@ -37,7 +37,7 @@ export default function App({ Component, pageProps }: AppProps) {
         return <></>
       } else {
         const session = getCookie('session-id')
-        if (!session) {
+        if (!session || session.length !== 32) {
           setCookie('session-id', getRandom('all', 32), { path: '/' })
         }
       }
@@ -51,6 +51,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <GlobalStyle />
       <Head />
       <Loading isLoading={isLoading} />
+      
       <Modal 
         title={event.title} 
         subTitle={event.subTitle} 
@@ -58,7 +59,11 @@ export default function App({ Component, pageProps }: AppProps) {
         visible={event.visible} 
       />
 
-      <Component {...pageProps} loading={{ event: isLoading, update: setLoading }} modal={{ event, update: updateModalEvent }} />
+      <Component 
+        {...pageProps} 
+        loading={{ event: isLoading, update: setLoading }} 
+        modal={{ event, update: updateModalEvent }} 
+      />
     </>
   )
 }
