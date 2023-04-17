@@ -3,6 +3,7 @@ import io from 'socket.io-client'
 import styled, { keyframes } from "styled-components";
 import { GlobalProps } from "../utils/interfaces";
 import { getCookie } from "@/utils/cookies";
+import emit from "@/utils/socket";
 
 export default function WriteForm(props: GlobalProps) {
   const [state, setState] = useState({
@@ -33,32 +34,40 @@ export default function WriteForm(props: GlobalProps) {
   useEffect(() => {
     const Socket = io("http://localhost:3002/socket")
     
-    Socket.emit('getQuest')
+    emit(Socket, 'getQuest')
     
     const getCategory = setInterval(() => {
-      Socket.emit('getCategory')
+      emit(Socket, 'getCategory')
     }, 350);
 
     const getQuest = setInterval(() => {
-      Socket.emit('getQuest')
+      emit(Socket, 'getQuest')
     }, 60000);
 
     Socket.on('getCategory', async (res) => {
-      setState(prevState => ({
-        ...prevState,
-        Category: res.category
-      }));
+      if (res.session == getCookie('session_id')) {
+        setState(prevState => ({
+          ...prevState,
+          Category: res.category
+        }));
+      }
     })
 
     Socket.on('getQuest', (res) => {
-      setState(prevState => ({
-        ...prevState,
-        Quest: {
-          increment: res.Quest.increment,
-          quest: res.Quest.quest,
-        }
-      }));
+      if (res.session == getCookie('session_id')) {
+        setState(prevState => ({
+          ...prevState,
+          Quest: {
+            increment: res.Quest.increment,
+            quest: res.Quest.quest,
+          }
+        }));
+      }
     });
+
+    Socket.on('addPosts', (res) => {
+      
+    })
 
     return () => {
       clearInterval(getCategory);
@@ -70,16 +79,14 @@ export default function WriteForm(props: GlobalProps) {
     e.preventDefault();
     const Socket = io("http://localhost:3002/socket")
     
-    Socket.emit('addPosts', { 
+    emit(Socket, 'addPosts', {
       title: state.client.title, 
       desc: state.client.desc, 
       password: state.client.password,
       category: state.client.category,
       quest: state.Quest.increment,
       answer: state.client.answer,
-      session: getCookie('session-id')
     })
-
   }
 
   return (
@@ -149,7 +156,7 @@ const Input = styled.input`
   }
 
   &:focus {
-    box-shadow: 0 0 0 2px black;
+    box-shadow: 0 0 0 2px rgb(0,78,130);
   }
 `
 
@@ -229,7 +236,7 @@ const TextArea = styled.textarea`
   border-radius: 8px;
 
   &:focus {
-    box-shadow: 0 0 0 2px black;
+    box-shadow: 0 0 0 2px rgb(0,78,130);
     height: 15rem;
   }
 `
