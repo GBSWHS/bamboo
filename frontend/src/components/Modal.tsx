@@ -32,8 +32,9 @@ export default function Modal(props: ModalState) {
 const Body = styled.div`
   z-index: 2;
   text-align: center;
+  box-shadow: rgba(25, 25, 25, 0.467) 0px 0px 1.5px 0px;
 
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
