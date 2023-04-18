@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useState } from "react";
 import io from 'socket.io-client'
 import styled, { keyframes } from "styled-components";
 import { GlobalProps } from "../utils/interfaces";
@@ -34,7 +34,7 @@ export default function WriteForm(props: GlobalProps) {
   const [mouseOver, setMouseOver] = useState("normal");
   
   useEffect(() => {
-    const Socket = io("http://localhost:3002/socket")
+    const Socket = io("http://bbapi.gbsw.hs.kr/socket")
     
     emit(Socket, 'getQuest')
     
@@ -79,7 +79,7 @@ export default function WriteForm(props: GlobalProps) {
 
   async function submit(e: any) {
     e.preventDefault();
-    await axios('http://localhost:3001/posts', {
+    await axios('http://bbapi.gbsw.hs.kr/posts', {
       method: "POST",
       headers: {
         Authorization: "session " + getCookie('session-id')
