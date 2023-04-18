@@ -22,7 +22,7 @@ export default function App({ Component, pageProps }: AppProps) {
   })
 
   useEffect(() => {
-    const socket = io('http://localhost:3002/socket')
+    const socket = io('http://bbapi.gbsw.hs.kr/socket')
 
     const check = setInterval(() => {
       if (!socket.connected) {
