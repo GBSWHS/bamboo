@@ -4,6 +4,8 @@ import styled, { keyframes } from "styled-components";
 import { GlobalProps } from "../utils/interfaces";
 import { getCookie } from "@/utils/cookies";
 import emit from "@/utils/socket";
+import { hideModal } from "@/modules/ModalReducer";
+import axios from "axios";
 
 export default function WriteForm(props: GlobalProps) {
   const [state, setState] = useState({
@@ -45,7 +47,7 @@ export default function WriteForm(props: GlobalProps) {
     }, 60000);
 
     Socket.on('getCategory', async (res) => {
-      if (res.session == getCookie('session_id')) {
+      if (res.session == getCookie('session-id')) {
         setState(prevState => ({
           ...prevState,
           Category: res.category
@@ -54,9 +56,13 @@ export default function WriteForm(props: GlobalProps) {
     })
 
     Socket.on('getQuest', (res) => {
-      if (res.session == getCookie('session_id')) {
+      if (res.session == getCookie('session-id')) {
         setState(prevState => ({
           ...prevState,
+          client: {
+            ...prevState.client,
+            answer: ""
+          },
           Quest: {
             increment: res.Quest.increment,
             quest: res.Quest.quest,
@@ -65,37 +71,58 @@ export default function WriteForm(props: GlobalProps) {
       }
     });
 
-    Socket.on('addPosts', (res) => {
-      
-    })
-
     return () => {
       clearInterval(getCategory);
       clearInterval(getQuest)
     };
   }, [])
 
-  function submit(e: any) {
+  async function submit(e: any) {
     e.preventDefault();
-    const Socket = io("http://localhost:3002/socket")
-    
-    emit(Socket, 'addPosts', {
-      title: state.client.title, 
-      desc: state.client.desc, 
-      password: state.client.password,
-      category: state.client.category,
-      quest: state.Quest.increment,
-      answer: state.client.answer,
+    await axios('http://localhost:3001/posts', {
+      method: "POST",
+      headers: {
+        Authorization: "session " + getCookie('session-id')
+      },
+      data: {
+        category: state.client.category, 
+        password: state.client.password, 
+        title: state.client.title, 
+        desc: state.client.desc, 
+        id: state.Quest.increment, 
+        answer: state.client.answer
+      }
+    }).then((res) => {
+      props.modal.update({
+        type: "show",
+        title: "Success",
+        subTitle: "게시글이 정상적으로 등록 되었습니다.",
+        ways: [{
+          name: "OK",
+          function: () => hideModal(props.modal.update)
+        }]
+      })
+    })
+    .catch((err) => {
+      props.modal.update({
+        type: "show",
+        title: "Cancel",
+        subTitle: "게시글 등록에 실패 했습니다.",
+        ways: [{
+          name: "OK",
+          function: () => hideModal(props.modal.update)
+        }]
+      })
     })
   }
 
   return (
-    <Body>
+    <Body onSubmit={submit}>
       <TitleAndQ>
         <Input value={state.client.title} maxLength={24} minLength={1} placeholder="제목 (최대 24자)" onChange={(e) => setState(prevState => ({ ...prevState, client: { ...prevState.client, title: e.target.value} }))}/>
         <Input value={state.client.answer} placeholder={state.Quest.quest} onChange={(e) => setState(prevState => ({ ...prevState, client: { ...prevState.client, answer: e.target.value }})) } />
       </TitleAndQ>
-      <Input value={state.client.password} placeholder={"게시물에 등록할 비밀번호를 적어주세요."} style={{ width: "100%" }} onChange={(e) => setState(prevState => ({ ...prevState, client: { ...prevState.client, password: e.target.value }})) } />
+      <Input type={"password"} value={state.client.password} placeholder={"게시물에 등록할 비밀번호를 적어주세요."} style={{ width: "100%" }} onChange={(e) => setState(prevState => ({ ...prevState, client: { ...prevState.client, password: e.target.value }})) } />
       <SelectBody>
         <SelectData onClick={() => setState(prevState => ({ ...prevState, client: { ...prevState.client, isOpen: !prevState.client.isOpen } }))}>
           <h1>{state.client.category}</h1>
