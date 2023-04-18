@@ -44,7 +44,7 @@ export class SocketGateway
   }
 
   @SubscribeMessage('getCategory')
-  async getCategory(@ConnectedSocket() socket: Socket) {
+  async getCategory(@ConnectedSocket() socket: Socket, @MessageBody() payload: any) {
     const category = await this.categoryRepository.find({ 
       where: {
         status: true
@@ -53,58 +53,71 @@ export class SocketGateway
         createdAt: "DESC"
       }
     })
-
-    socket.emit('getCategory', category);
+    socket.emit('getCategory', { success: true, category, session: payload.session });
   }
   
   @SubscribeMessage('addCategory')
-  async addCategory(@ConnectedSocket() socket: Socket, @MessageBody() payload: { name: string, desc: string, password: string }) {
+  async addCategory(@ConnectedSocket() socket: Socket, @MessageBody() payload: { name: string, desc: string, password: string, session: string }) {
     try {
       if (payload.password !== this.configService.get("ROOT_PASSWORD")) throw("not user")
       else {
         await this.categoryRepository.insert({ name: payload.name, desc: payload.desc })
-        socket.emit('addCategory', { success: true })
+        socket.emit('addCategory', { success: true, session: payload.session })
       }
     } catch(err) {
-      socket.emit('addCategory', { success: false })
+      socket.emit('addCategory', { success: false, session: payload.session })
     }
   }
 
   @SubscribeMessage('addQuest')
-  async addQuest(@ConnectedSocket() socket: Socket, @MessageBody() payload: { quest: string, answer: string, password: string }) {
+  async addQuest(@ConnectedSocket() socket: Socket, @MessageBody() payload: { quest: string, answer: string, password: string, session: string }) {
     try {
       if (payload.password !== this.configService.get("ROOT_PASSWORD")) throw("not user")
       else {
         await this.questRepository.insert({ quest: payload.quest, answer: payload.answer })
-        socket.emit('addQuest', { success: true })
+        socket.emit('addQuest', { success: true, session: payload.session })
       }
     } catch(err) {
-      socket.emit('addQuest', { success: false })
+      socket.emit('addQuest', { success: false, session: payload.session })
     }
   }
 
   @SubscribeMessage('getQuest')
-  async getQuest(@ConnectedSocket() socket: Socket) {
+  async getQuest(@ConnectedSocket() socket: Socket, @MessageBody() payload: any) {
     try {
-      const cnt = await this.questRepository.count();
-      const Quest = await this.questRepository.findOneByOrFail({
-        increment: Math.floor(Math.random() * cnt + 1)
-      })
+      const [Quest] = await this.questRepository
+        .createQueryBuilder('QuestEntity')
+        .select()
+        .orderBy('RAND()')
+        .limit(1)
+        .getMany();
 
       socket.emit('getQuest', { 
         success: true, 
+        session: payload.session,
         Quest: {
           increment: Quest.increment,
           quest: Quest.quest
         }
       })
     } catch (err) {
-      socket.emit('getQuest', { success: false })
+      socket.emit('getQuest', { success: false, session: payload.session })
     }
   }
   
   @SubscribeMessage('getPosts')
-  getPosts(@ConnectedSocket() socket: Socket, @MessageBody() payload: any) {
-    return 'Hello world!';
+  async getPosts(@ConnectedSocket() socket: Socket, @MessageBody() payload: any) {
+    try {
+      const visiblePosts = await this.postsRepository.find({
+        where: { visible: true },
+        order: { createdAt: "DESC" },
+        skip: payload.offset,
+        take: payload.limit,
+      });
+
+      socket.emit('getPosts', { success: true, session: payload.session, visiblePosts })
+    } catch(err) {
+      socket.emit('getPosts', { success: false, session: payload.session })
+    }
   }
 }
