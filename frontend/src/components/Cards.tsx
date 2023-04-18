@@ -44,8 +44,8 @@ export default function Cards(props: GlobalProps) {
   const [offset, setOffset] = useState<number>(0)
 
   async function deletePost(uuid: string) {
-    const password = prompt()
-    await axios('http://localhost:3001/delPost', {
+    const password = prompt("비밀번호를 입력해주세요.")
+    await axios('http://bbapi.gbsw.hs.kr/delPost', {
       method: "POST",
       data: {
         uuid,
@@ -75,9 +75,9 @@ export default function Cards(props: GlobalProps) {
       })
     })
   }
-  
+
   useEffect(() => {
-    const Socket = io("http://localhost:3002/socket")
+    const Socket = io("http://bbapi.gbsw.hs.kr/socket")
 
     emit(Socket, "getPosts", { offset, limit: 6 })
 
@@ -112,7 +112,6 @@ export default function Cards(props: GlobalProps) {
               <span>
                 <Tag>{data.category}</Tag>
                 <Remove onClick={() => deletePost(data.uuid)}>삭제</Remove>
-                <Remove onClick={() => deletePost(data.uuid)}>신고</Remove>
               </span>
             </Card>
           :
