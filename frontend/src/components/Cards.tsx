@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react"
 import io from "socket.io-client"
-import styled from "styled-components"
+import styled, { keyframes } from "styled-components"
 import moment from "moment"
+import emit from "@/utils/socket";
+import axios from "axios";
+import { GlobalProps } from "@/utils/interfaces";
+import { hideModal } from "@/modules/ModalReducer";
+import { useRouter } from "next/router";
 
 interface cardsInterface {
   uuid: string,
+  num: number,
   title: string,
   desc: string,
   category: string,
@@ -23,11 +29,62 @@ const timeText = (time: number) => {
   return text
 }
 
-export default function Cards() {
-  const [cards, setCards] = useState<cardsInterface[] | undefined>(undefined)
+export default function Cards(props: GlobalProps) {
+  const router = useRouter()
+  const [cards, setCards] = useState<cardsInterface[]>([{
+    uuid: "",
+    num: 0,
+    title: "",
+    desc: "",
+    category: "",
+    visible: false,
+    createdAt: new Date()
+  }])
+
+  const [offset, setOffset] = useState<number>(0)
+
+  async function deletePost(uuid: string) {
+    const password = prompt()
+    await axios('http://localhost:3001/delPost', {
+      method: "POST",
+      data: {
+        uuid,
+        password
+      }
+    })
+    .then(() => {
+      props.modal.update({
+        type: "show",
+        title: "Success",
+        subTitle: "게시글 삭제에 성공 했습니다.",
+        ways: [{
+          name: "OK",
+          function: () => {router.reload(); hideModal(props.modal.update)}
+        }]
+      })
+    })
+    .catch(() => {
+      props.modal.update({
+        type: "show",
+        title: "Cancel",
+        subTitle: "게시글 삭제에 실패 했습니다.",
+        ways: [{
+          name: "OK",
+          function: () => { router.reload(); hideModal(props.modal.update) }
+        }]
+      })
+    })
+  }
   
   useEffect(() => {
-    const socket = io("http://localhost:3002/socket")
+    const Socket = io("http://localhost:3002/socket")
+
+    emit(Socket, "getPosts", { offset, limit: 6 })
+
+    Socket.on('getPosts', (res) => {
+      setCards([...cards, ...res.visiblePosts])
+      setOffset(offset + 1);
+    })
 
     window.addEventListener('scroll', async () => {
       const { documentElement, body } = document;
@@ -36,27 +93,74 @@ export default function Cards() {
       const clientHeight = documentElement.clientHeight;
 
       if (scrollTop + clientHeight >= scrollHeight - 0.5) {
-        
+        emit(Socket, "getPosts", { offset, limit: 6 })
       }
     })
   }, [])
   
   return (
     <Body>
-      <Card>
-        <h1>post. 1</h1>
-        <p>{moment(new Date()).format('YYYY. MM. DD. HH') + " " + timeText(Number(moment(new Date()).format('H')))}</p>
-        <br/>
-        <Title>경소고</Title>
-        <Desc>대나무숲이 열렸어요~</Desc>
-        <Tag>학교 생활</Tag>
-      </Card>
+      {Object.values(cards).map((data, index) => (
+        <>
+          {data.visible ?
+            <Card>
+              <h1>post. {data.num}</h1>
+              <p>{moment(data.createdAt).format('YYYY. MM. DD. HH 시') + " " + timeText(Number(moment(data.createdAt).format('H')))}</p>
+              <br/>
+              <Title>{data.title}</Title>
+              <Desc>{data.desc}</Desc>
+              <span>
+                <Tag>{data.category}</Tag>
+                <Remove onClick={() => deletePost(data.uuid)}>삭제</Remove>
+                <Remove onClick={() => deletePost(data.uuid)}>신고</Remove>
+              </span>
+            </Card>
+          :
+            <></>
+          }
+        </>
+      ))}
+      <Load>
+        <div />
+      </Load>      
     </Body>
   )
 }
 
 const Body = styled.div`
   width: 100%;
+`
+
+const rotate = keyframes`
+  0% {
+    transform: translateX(-50%) rotate(0deg);
+  }
+
+  100% {
+    transform: translateX(-50%) rotate(360deg);
+  }
+`
+
+const Load = styled.div`
+  position: relative;
+  width: 100%;
+  height: 60px;
+  margin-bottom: 40px;
+
+  div {
+    width: 80px;
+    height: 80px;
+    
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  
+    background-image: url(/symbol-only.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+
+    animation: ${rotate} 30s infinite;
+  }
 `
 
 const Card = styled.div`
@@ -110,4 +214,19 @@ const Tag = styled.div`
   font-size: 14px;
   font-weight: 700;
   color: rgb(0,78,130);
+`
+
+const Remove = styled.div`
+  display: inline-block;
+  padding: 10px 20px;
+  margin-right: 6px;
+  margin-bottom: 6px;
+  border: none;
+  border-radius: 7px;
+  outline: none;
+  background-color: #F9D2D4;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ED1C24;
+  cursor: pointer;
 `
