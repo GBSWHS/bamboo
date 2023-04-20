@@ -60,7 +60,7 @@ export default function WriteForm(props: GlobalProps) {
   useEffect(() => {
     async function getQuestData() {
       try {
-        const res = await axios('https://bbapi.gbsw.hs.kr/getQuest', {
+        const res = await axios('https://bbapi.gbsw.hs.kr/api/getQuest', {
           method: "GET"
         }).then((res) => res.data)
 
@@ -84,7 +84,7 @@ export default function WriteForm(props: GlobalProps) {
 
     async function getCategoryData() {
       try {
-        const res = await axios('https://bbapi.gbsw.hs.kr/getCategory', {
+        const res = await axios('https://bbapi.gbsw.hs.kr/api/getCategory', {
           method: "GET",
         }).then((res) => res.data)
         
@@ -116,7 +116,7 @@ export default function WriteForm(props: GlobalProps) {
 
   async function submit(e: any) {
     e.preventDefault();
-    await axios('http://bbapi.gbsw.hs.kr/addPost', {
+    await axios('http://bbapi.gbsw.hs.kr/api/addPost', {
       method: "POST",
       headers: {
         Authorization: "session " + getCookie('session-id')
