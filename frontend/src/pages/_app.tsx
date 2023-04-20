@@ -1,7 +1,6 @@
 import ModalReducer, { hideModal } from '@/modules/ModalReducer'
 import type { AppProps } from 'next/app'
 import { useEffect, useReducer, useState } from 'react'
-import io from 'socket.io-client'
 import GlobalStyle from '@/styles/globals'
 import Modal from '@/components/Modal'
 import Loading from '@/components/Loading'
