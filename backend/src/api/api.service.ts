@@ -1,4 +1,4 @@
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request, Response } from 'express';
@@ -16,7 +16,6 @@ export class ApiService {
     private questRepository: Repository<QuestEntity>,
     @InjectRepository(CategoryEntity)
     private categoryRepository: Repository<CategoryEntity>,
-    @Inject(CACHE_MANAGER)
     private configService: ConfigService
   ) {};
 
@@ -176,13 +175,13 @@ export class ApiService {
 
   async addQuest(req: Request, res: Response) {
     try {
-      if (req.body.password !== this.configService.get("ROOT_PASSWORD")) throw new Error("not admin")
+      if (req.body.password !== await this.configService.get("ROOT_PASSWORD")) throw new Error("not admin")
       else {
         await this.questRepository.insert({ quest: req.body.quest, answer: req.body.answer })
         return res.status(200).json({ success: true })
       }
     } catch (err) {
-      return res.status(400).json({ success: false })
+      return res.status(400).json({ success: false, err })
     }
   }
 
