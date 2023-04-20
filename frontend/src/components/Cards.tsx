@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react"
-import io from "socket.io-client"
 import styled, { keyframes } from "styled-components"
 import moment from "moment"
-import emit from "@/utils/socket";
 import axios from "axios";
 import { GlobalProps } from "@/utils/interfaces";
 import { hideModal } from "@/modules/ModalReducer";
@@ -77,14 +75,18 @@ export default function Cards(props: GlobalProps) {
   }
 
   useEffect(() => {
-    const Socket = io("http://bbapi.gbsw.hs.kr/socket")
-
-    emit(Socket, "getPosts", { offset, limit: 6 })
-
-    Socket.on('getPosts', (res) => {
-      setCards([...cards, ...res.visiblePosts])
-      setOffset(offset + 1);
-    })
+    async function getPosts() {
+      try {
+        const res = await axios(`https://bbapi.gbsw.hs.kr/getPosts?offset=${offset}&limit=6`, {
+          method: "GET"
+        }).then((res) => res.data)
+        setCards([...cards, ...res.visiblePosts])
+        setOffset(offset + 1);
+        return
+      } catch(err) {
+        console.error(err)
+      }
+    }
 
     window.addEventListener('scroll', async () => {
       const { documentElement, body } = document;
@@ -93,7 +95,7 @@ export default function Cards(props: GlobalProps) {
       const clientHeight = documentElement.clientHeight;
 
       if (scrollTop + clientHeight >= scrollHeight - 0.5) {
-        emit(Socket, "getPosts", { offset, limit: 6 })
+        getPosts();
       }
     })
   }, [])
