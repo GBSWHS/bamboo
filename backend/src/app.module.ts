@@ -6,7 +6,6 @@ import { ConfigurationModule } from './config/config.module';
 import PostsEntity from './entity/posts.entity';
 import CategoryEntity from './entity/category.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { redisModule } from './utils/redis';
 import { ApiController } from './api/api.controller';
 import { ApiService } from './api/api.service';
 import { ApiModule } from './api/api.module';
@@ -27,7 +26,6 @@ import QuestEntity from './entity/quest.entity';
         synchronize: configService.get<boolean>('TYPEORM_SYBCHRONIZE')
       }),
     }),
-    redisModule,
     ConfigurationModule,
     ApiModule
   ],
