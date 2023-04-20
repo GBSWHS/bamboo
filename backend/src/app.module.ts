@@ -7,6 +7,9 @@ import PostsEntity from './entity/posts.entity';
 import CategoryEntity from './entity/category.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { redisModule } from './utils/redis';
+import { ApiController } from './api/api.controller';
+import { ApiService } from './api/api.service';
+import { ApiModule } from './api/api.module';
 import QuestEntity from './entity/quest.entity';
 
 @Module({
@@ -25,9 +28,10 @@ import QuestEntity from './entity/quest.entity';
       }),
     }),
     redisModule,
-    ConfigurationModule
+    ConfigurationModule,
+    ApiModule
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, ApiController],
+  providers: [AppService, ApiService],
 })
-export class AppModule {}
+export class AppModule {};
