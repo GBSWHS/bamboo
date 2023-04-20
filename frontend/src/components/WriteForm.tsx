@@ -1,14 +1,38 @@
 import React, { useEffect, useState } from "react";
-import io from 'socket.io-client'
 import styled, { keyframes } from "styled-components";
 import { GlobalProps } from "../utils/interfaces";
 import { getCookie } from "@/utils/cookies";
-import emit from "@/utils/socket";
 import { hideModal } from "@/modules/ModalReducer";
 import axios from "axios";
 
+interface CategoryType {
+  uuid: string,
+  name: string,
+  desc: string | "",
+  status: boolean,
+  post_count: number,
+  createdAt: Date
+}
+
+interface AppState {
+  client: {
+    title: string;
+    desc: string;
+    password: string;
+    category: string;
+    answer: string;
+    isOpen: boolean;
+  };
+  Quest: {
+    increment: string;
+    quest: string;
+  };
+  Category: CategoryType[];
+}
+
+
 export default function WriteForm(props: GlobalProps) {
-  const [state, setState] = useState({
+  const [state, setState] = useState<AppState>({
     client: {
       title: "",
       desc: "",
@@ -25,7 +49,7 @@ export default function WriteForm(props: GlobalProps) {
       uuid: "",
       name: "",
       desc: "",
-      visible: false,
+      status: false,
       post_count: 0,
       createdAt: new Date()
     }]
@@ -34,29 +58,12 @@ export default function WriteForm(props: GlobalProps) {
   const [mouseOver, setMouseOver] = useState("normal");
   
   useEffect(() => {
-    const Socket = io("http://bbapi.gbsw.hs.kr/socket")
-    
-    emit(Socket, 'getQuest')
-    
-    const getCategory = setInterval(() => {
-      emit(Socket, 'getCategory')
-    }, 350);
+    async function getQuestData() {
+      try {
+        const res = await axios('https://bbapi.gbsw.hs.kr/getQuest', {
+          method: "GET"
+        }).then((res) => res.data)
 
-    const getQuest = setInterval(() => {
-      emit(Socket, 'getQuest')
-    }, 60000);
-
-    Socket.on('getCategory', async (res) => {
-      if (res.session == getCookie('session-id')) {
-        setState(prevState => ({
-          ...prevState,
-          Category: res.category
-        }));
-      }
-    })
-
-    Socket.on('getQuest', (res) => {
-      if (res.session == getCookie('session-id')) {
         setState(prevState => ({
           ...prevState,
           client: {
@@ -64,12 +71,42 @@ export default function WriteForm(props: GlobalProps) {
             answer: ""
           },
           Quest: {
-            increment: res.Quest.increment,
-            quest: res.Quest.quest,
+            increment: res.increment,
+            quest: res.quest
           }
-        }));
+        }))
+
+        return
+      } catch (err) {
+        console.error(err)
       }
-    });
+    }
+
+    async function getCategoryData() {
+      try {
+        const res = await axios('https://bbapi.gbsw.hs.kr/getCategory', {
+          method: "GET",
+        }).then((res) => res.data)
+        
+        setState(prevState => ({
+          ...prevState,
+          Category: res.category
+        }))
+      } catch(err) {
+        console.error(err)
+      }
+    }
+
+    getQuestData()
+    getCategoryData()
+    
+    const getCategory = setInterval(() => {
+      getCategoryData();
+    }, 30000);
+
+    const getQuest = setInterval(() => {
+      getQuestData();
+    }, 60000);
 
     return () => {
       clearInterval(getCategory);
@@ -79,7 +116,7 @@ export default function WriteForm(props: GlobalProps) {
 
   async function submit(e: any) {
     e.preventDefault();
-    await axios('http://bbapi.gbsw.hs.kr/posts', {
+    await axios('http://bbapi.gbsw.hs.kr/addPost', {
       method: "POST",
       headers: {
         Authorization: "session " + getCookie('session-id')
