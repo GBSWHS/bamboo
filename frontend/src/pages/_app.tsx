@@ -22,28 +22,13 @@ export default function App({ Component, pageProps }: AppProps) {
   })
 
   useEffect(() => {
-    const socket = io('http://bbapi.gbsw.hs.kr/socket')
-
     const check = setInterval(() => {
-      if (!socket.connected) {
-        updateModalEvent({ 
-          type: "show", 
-          title: "서버와의 연결이 없습니다.",
-          subTitle: "인터넷 연결을 확인해주세요.", 
-          ways: [{ 
-            name: "OK", 
-            function: () => hideModal(updateModalEvent)  
-          }]
-        })
-        return <></>
-      } else {
-        const session = getCookie('session-id')
-        if (!session || session.length !== 32) {
-          setCookie('session-id', getRandom('all', 32), { path: '/' })
-        }
+      const session = getCookie('session-id')
+      if (!session || session.length !== 32) {
+        setCookie('session-id', getRandom('all', 32), { path: '/' })
       }
-    }, 350);
-    
+    })
+
     return () => clearInterval(check);
   }, [])
 
