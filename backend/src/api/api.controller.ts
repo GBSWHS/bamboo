@@ -10,7 +10,7 @@ export class ApiController {
     return this.apiService.getStatus();
   }
 
-  @Get('addQuest')
+  @Post('addQuest')
   addQuest(@Req() req, @Res() res) {
     return this.apiService.addQuest(req, res);
   }
