@@ -43,7 +43,7 @@ export default function Cards(props: GlobalProps) {
 
   async function deletePost(uuid: string) {
     const password = prompt("비밀번호를 입력해주세요.")
-    await axios('http://bbapi.gbsw.hs.kr/delPost', {
+    await axios('http://bbapi.gbsw.hs.kr/api/delPost', {
       method: "POST",
       data: {
         uuid,
@@ -77,7 +77,7 @@ export default function Cards(props: GlobalProps) {
   useEffect(() => {
     async function getPosts() {
       try {
-        const res = await axios(`https://bbapi.gbsw.hs.kr/getPosts?offset=${offset}&limit=6`, {
+        const res = await axios(`https://bbapi.gbsw.hs.kr/api/getPosts?offset=${offset}&limit=6`, {
           method: "GET"
         }).then((res) => res.data)
         setCards([...cards, ...res.visiblePosts])
